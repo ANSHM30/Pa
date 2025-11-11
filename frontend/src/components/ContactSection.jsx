@@ -127,6 +127,12 @@ export default function ContactSection() {
     if (error) setError(null);
   }
 
+  // === Your public links ===
+  const LINKEDIN_URL = "https://www.linkedin.com/in/ansh-mishra-189506257/";
+  const GITHUB_URL = "https://github.com/ANSHM30";
+  const EMAIL_ADDRESS = "anshkm30@gmail.com";
+  // =========================
+
   return (
     <section
       id="contact"
@@ -227,28 +233,32 @@ export default function ContactSection() {
       {/* Social Links */}
       <div className="relative z-10 mt-10 flex justify-center space-x-8">
         <a
-          href="#"
+          href={LINKEDIN_URL}
           className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
           title="LinkedIn"
-          onClick={(e) => e.preventDefault()}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open LinkedIn profile (opens in new tab)"
         >
           <FaLinkedin className="w-7 h-7 text-indigo-400 hover:text-indigo-300 transition" />
         </a>
 
         <a
-          href="#"
+          href={GITHUB_URL}
           className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/30"
           title="GitHub"
-          onClick={(e) => e.preventDefault()}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open GitHub profile (opens in new tab)"
         >
           <FaGithub className="w-7 h-7 text-gray-300 hover:text-white transition" />
         </a>
 
         <a
-          href="#"
+          href={`mailto:${EMAIL_ADDRESS}`}
           className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-pink-500 hover:shadow-lg hover:shadow-pink-500/30"
-          title="Email"
-          onClick={(e) => e.preventDefault()}
+          title="Send email"
+          aria-label="Send email"
         >
           <FaEnvelope className="w-7 h-7 text-pink-400 hover:text-pink-300 transition" />
         </a>
