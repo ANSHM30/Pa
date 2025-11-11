@@ -9,6 +9,13 @@ export default function ContactSection() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
 
+  // per-field errors
+  const [fieldErrors, setFieldErrors] = useState({
+    name: "",
+    email: "",
+    message: "",
+  });
+
   // Vite env vars (must be prefixed with VITE_)
   const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
   const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
@@ -28,6 +35,44 @@ export default function ContactSection() {
     }
   }, [error]);
 
+  // Simple and practical email regex that rejects missing @ and domain parts
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validateAll({ name, email, message }) {
+    const errors = { name: "", email: "", message: "" };
+    let valid = true;
+
+    // Name: required, min 2 chars
+    if (!name) {
+      errors.name = "Name is required.";
+      valid = false;
+    } else if (name.length < 2) {
+      errors.name = "Please enter your full name (min 2 characters).";
+      valid = false;
+    }
+
+    // Email: required + regex
+    if (!email) {
+      errors.email = "Email is required.";
+      valid = false;
+    } else if (!emailRegex.test(email)) {
+      errors.email = "Please enter a valid email address (example: you@domain.com).";
+      valid = false;
+    }
+
+    // Message: required, min 10 chars
+    if (!message) {
+      errors.message = "Message is required.";
+      valid = false;
+    } else if (message.length < 10) {
+      errors.message = "Please write a longer message (min 10 characters).";
+      valid = false;
+    }
+
+    setFieldErrors(errors);
+    return valid;
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
     if (!formRef.current) return;
@@ -38,8 +83,10 @@ export default function ContactSection() {
     const email = (fd.get("email") || "").toString().trim();
     const message = (fd.get("message") || "").toString().trim();
 
-    if (!name || !email || !message) {
-      setError("Please fill out all fields.");
+    // Validate on client
+    const isValid = validateAll({ name, email, message });
+    if (!isValid) {
+      setError("Please fix the highlighted fields.");
       return;
     }
 
@@ -57,11 +104,27 @@ export default function ContactSection() {
       setSending(false);
       setSent(true);
       formRef.current.reset();
+      // clear field errors after successful send
+      setFieldErrors({ name: "", email: "", message: "" });
     } catch (err) {
       console.error("EmailJS error:", err);
       setSending(false);
       setError("Failed to send — try again later.");
     }
+  }
+
+  // Clear a single field error when user types
+  function handleFieldChange(field, value) {
+    setFieldErrors((prev) => {
+      const next = { ...prev };
+      if (next[field]) {
+        next[field] = "";
+      }
+      return next;
+    });
+
+    // Clear top-level error if any
+    if (error) setError(null);
   }
 
   return (
@@ -93,35 +156,62 @@ export default function ContactSection() {
 
         <form ref={formRef} onSubmit={handleSubmit} className="relative z-10 space-y-6" noValidate>
           {/* NOTE: `name` attributes must match the variables in your EmailJS template ({{name}}, {{email}}, {{message}}) */}
-          <input
-            name="name"
-            type="text"
-            placeholder="Your Name"
-            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-            required
-            aria-label="Your name"
-          />
-          <input
-            name="email"
-            type="email"
-            placeholder="Your Email"
-            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition"
-            required
-            aria-label="Your email"
-          />
-          <textarea
-            name="message"
-            rows="5"
-            placeholder="Your Message"
-            className="w-full p-3 rounded-lg bg-gray-800 border border-gray-700 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition resize-none"
-            required
-            aria-label="Your message"
-          />
+          <div>
+            <input
+              name="name"
+              type="text"
+              placeholder="Your Name"
+              className={`w-full p-3 rounded-lg bg-gray-800 border text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition
+                ${fieldErrors.name ? "border-red-400 focus:ring-red-400" : "border-gray-700 focus:ring-indigo-500"}`}
+              required
+              aria-label="Your name"
+              aria-invalid={!!fieldErrors.name}
+              onChange={(e) => handleFieldChange("name", e.target.value)}
+            />
+            {fieldErrors.name && (
+              <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.name}</p>
+            )}
+          </div>
+
+          <div>
+            <input
+              name="email"
+              type="email"
+              placeholder="Your Email"
+              className={`w-full p-3 rounded-lg bg-gray-800 border text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition
+                ${fieldErrors.email ? "border-red-400 focus:ring-red-400" : "border-gray-700 focus:ring-indigo-500"}`}
+              required
+              aria-label="Your email"
+              aria-invalid={!!fieldErrors.email}
+              onChange={(e) => handleFieldChange("email", e.target.value)}
+            />
+            {fieldErrors.email && (
+              <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.email}</p>
+            )}
+          </div>
+
+          <div>
+            <textarea
+              name="message"
+              rows="5"
+              placeholder="Your Message"
+              className={`w-full p-3 rounded-lg bg-gray-800 border text-white placeholder-gray-400 focus:outline-none focus:ring-2 transition resize-none
+                ${fieldErrors.message ? "border-red-400 focus:ring-red-400" : "border-gray-700 focus:ring-indigo-500"}`}
+              required
+              aria-label="Your message"
+              aria-invalid={!!fieldErrors.message}
+              onChange={(e) => handleFieldChange("message", e.target.value)}
+            />
+            {fieldErrors.message && (
+              <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.message}</p>
+            )}
+          </div>
+
           <div className="flex items-center gap-4">
             <button
               type="submit"
               disabled={sending}
-              className="inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white font-semibold shadow-lg hover:opacity-95 transition transform hover:-translate-y-[2px]"
+              className="inline-flex items-center gap-3 px-5 py-3 rounded-lg bg-gradient-to-r from-indigo-500 via-purple-600 to-pink-500 text-white font-semibold shadow-lg hover:opacity-95 transition transform hover:-translate-y-[2px] disabled:opacity-60 disabled:cursor-not-allowed"
             >
               <FaPaperPlane className="w-4 h-4" />
               {sending ? "Sending..." : "Send Message"}
@@ -164,13 +254,16 @@ export default function ContactSection() {
         </a>
       </div>
 
-      {/* Success toast (bottom center small) */}
-      <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none">
+      {/* Success toast (top center) */}
+      <div
+        className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none"
+        aria-live="polite"
+        aria-atomic="true"
+      >
         <div
-          className={`mx-auto w-80 max-w-xs rounded-lg text-white text-center transition-all duration-300 ${
-            sent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-6"
-          }`}
-          aria-live="polite"
+          role="status"
+          className={`mx-auto w-80 max-w-xs rounded-lg text-white text-center transition-all duration-300 pointer-events-auto
+            ${sent ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"}`}
         >
           <div className="p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-xl">
             <div className="font-semibold">Message Sent</div>
