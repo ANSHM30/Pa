@@ -10,7 +10,7 @@ export default function Navbar() {
           
           {/* Logo */}
           <div className="flex-shrink-0 text-white text-2xl font-bold flex items-center gap-2">
-            🚀 <span>MyPortfolio</span>
+            🚀 <span></span>
           </div>
 
           {/* Desktop Menu */}

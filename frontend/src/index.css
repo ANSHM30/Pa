@@ -10,3 +10,279 @@
     #000000 70% /* Black */
   );
 }
+
+@keyframes gradientFlow {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 0%;
+  }
+}
+
+.animate-gradientFlow {
+  background-size: 200% 200%;
+  animation: gradientFlow 4s ease-in-out infinite;
+}
+
+
+/* Optional: keep your glow for extra depth */
+@keyframes glowPulse {
+  0%, 100% {
+    text-shadow:
+      0 0 8px rgba(20, 184, 166, 0.5),
+      0 0 16px rgba(249, 115, 22, 0.4),
+      0 0 32px rgba(234, 179, 8, 0.2);
+  }
+  50% {
+    text-shadow:
+      0 0 16px rgba(20, 184, 166, 0.8),
+      0 0 32px rgba(249, 115, 22, 0.6),
+      0 0 48px rgba(234, 179, 8, 0.4);
+  }
+}
+
+.animate-glow {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+.vertical-timeline-element-content {
+  color: #f9fafb !important; /* White text */
+  border: 1px solid rgba(129, 140, 248, 0.3) !important; /* Indigo border */
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.3) !important;
+}
+
+.vertical-timeline-element-title,
+.vertical-timeline-element-subtitle {
+  color: #f9fafb !important;
+}
+
+/* Add in index.css */
+.timeline-glow {
+  box-shadow: 0 0 15px rgba(168, 85, 247, 0.6);
+}
+
+img {
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.skill-card:hover svg {
+  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.6));
+}
+
+/* ------------------------------------------------------------
+   🌟 Skill Cards: Rotation + Colored Glow on Hover
+------------------------------------------------------------- */
+@keyframes rotate-top-normal {
+  0% {
+    transform: rotate(0);
+    transform-origin: top;
+  }
+  100% {
+    transform: rotate(360deg);
+    transform-origin: top;
+  }
+}
+
+.card-animate {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card-animate:hover {
+  transform: translateY(-6px) scale(1.03);
+}
+
+/* --- ICON ROTATION --- */
+.card-animate .rotate-top-normal {
+  display: inline-block;
+  transform-origin: top;
+}
+
+.card-animate:hover .rotate-top-normal {
+  animation: rotate-top-normal 0.6s cubic-bezier(0.455, 0.03, 0.515, 0.955);
+}
+
+--- GLOW EFFECT ---
+.card-animate::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 0.75rem; /* same as rounded-xl */
+  opacity: 0;
+  filter: blur(22px);
+  transition: opacity 0.4s ease, filter 0.3s ease;
+}
+
+.card-animate:hover::before {
+  opacity: 1;
+  filter: blur(32px);
+}
+
+.card-animate > * {
+  position: relative;
+  z-index: 1;
+}
+/* -----------------------------------------
+   Make the hover glow also appear on:
+   - :active (touch press)
+   - :focus-within (keyboard/tab / programmatic focus)
+   - .is-touched (JS toggle for touch devices)
+   -----------------------------------------*/
+/* Skills glow: visible on hover, focus, active, and on touch via .is-touched */
+.group {
+  position: relative;
+  overflow: visible; /* allow glow to extend beyond card */
+}
+
+/* Glow element (replace your previous inline opacity classes with this class) */
+.group-glow {
+  position: absolute;
+  inset: -0.5rem; /* matches -inset-2 */
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transform: scale(0.98);
+  filter: blur(28px) saturate(1.1);
+  transition: opacity .32s ease, transform .32s ease, filter .32s ease;
+}
+
+/* content above glow */
+.group > .card-animate,
+.group > .card-animate * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Reveal glow on desktop hover, keyboard focus, and active (for touch press) */
+.group:hover .group-glow,
+.group:active .group-glow,
+.group:focus-within .group-glow,
+.group.is-touched .group-glow {
+  opacity: 0.70;               /* adjust strength if needed */
+  transform: scale(1.05);
+  filter: blur(36px) saturate(1.15);
+}
+
+/* Slightly stronger on coarse pointer (mobile) while active/touched */
+@media (pointer: coarse) {
+  .group:active .group-glow,
+  .group.is-touched .group-glow {
+    opacity: 0.82;
+    filter: blur(40px) saturate(1.18);
+  }
+}
+
+/* Make sure focus-visible remains accessible */
+.card-animate:focus-within {
+  outline: 2px solid rgba(99,102,241,0.12);
+  outline-offset: 6px;
+  border-radius: 1rem;
+}
+/* ------------------------------------ */
+/* 🌙 NAVBAR + UNDERLINE HIGHLIGHT */
+/* ------------------------------------ */
+.nav-wrapper {
+  transition: transform 0.38s cubic-bezier(0.2, 0.9, 0.25, 1);
+  will-change: transform;
+}
+.nav-hidden {
+  transform: translateY(-100%);
+}
+.nav-visible {
+  transform: translateY(0);
+}
+
+/* Nav links */
+.nav-link {
+  position: relative;
+  color: #d1d5db;
+  padding: 0.25rem 0;
+  transition: color 0.3s ease;
+}
+.nav-link:hover {
+  color: #a78bfa;
+}
+.nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 3px;
+  width: 0%;
+  opacity: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(99, 102, 241, 0.95), rgba(236, 72, 153, 0.9));
+  transition: width 0.3s cubic-bezier(0.2, 0.9, 0.25, 1), opacity 0.3s ease;
+}
+.nav-link:hover::after {
+  width: 60%;
+  opacity: 1;
+}
+.nav-link.active {
+  color: #fff;
+  font-weight: 600;
+}
+.nav-link.active::after {
+  width: 100%;
+  opacity: 1;
+}
+
+/* ------------------------------------ */
+/* ✨ CUSTOM CURSOR */
+/* ------------------------------------ */
+.custom-cursor-dot,
+.custom-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: screen;
+  transition: opacity 0.2s ease, transform 0.12s ease;
+}
+.custom-cursor-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.95);
+  transform: translate3d(-50%, -50%, 0);
+  box-shadow: 0 6px 18px rgba(124, 58, 237, 0.2), 0 2px 6px rgba(0, 0, 0, 0.6);
+  opacity: 0.95;
+}
+.custom-cursor-ring {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 58, 237, 0.14);
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(124, 58, 237, 0.06),
+    rgba(0, 0, 0, 0)
+  );
+  transform: translate3d(-50%, -50%, 0);
+  transition: transform 0.12s ease, width 0.15s ease, height 0.15s ease, opacity 0.12s;
+  opacity: 0.95;
+}
+.cursor-active {
+  width: 48px;
+  height: 48px;
+  border-color: rgba(99, 102, 241, 0.22);
+  opacity: 1;
+  transform: translate3d(-50%, -50%, 0) scale(1.05);
+}
+
+/* Hide cursor for mobile */
+@media (max-width: 640px) {
+  .custom-cursor-ring,
+  .custom-cursor-dot {
+    display: none;
+  }
+}
