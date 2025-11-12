@@ -142,7 +142,7 @@ const experienceData = [
       "Cloudinary",
     ],
     live: "",
-    repo: "https://github.com/ANSHM30/travel-bucketlist.git",
+    repo: "https://github.com/ANSHM30/Travel-Bucket-list.git",
   },
 ];
 
