@@ -264,23 +264,26 @@ export default function ContactSection() {
         </a>
       </div>
 
-      {/* Success toast (top center) */}
-      <div
-        className="fixed top-6 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none"
-        aria-live="polite"
-        aria-atomic="true"
-      >
-        <div
-          role="status"
-          className={`mx-auto w-80 max-w-xs rounded-lg text-white text-center transition-all duration-300 pointer-events-auto
-            ${sent ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-6"}`}
-        >
-          <div className="p-3 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-xl">
-            <div className="font-semibold">Message Sent</div>
-            <div className="text-sm text-white/80">Thanks — I&apos;ll get back to you shortly.</div>
-          </div>
-        </div>
+      {/* ✅ Success toast (responsive, top center) */}
+<div
+  className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] sm:w-auto px-2 sm:px-0 pointer-events-none"
+  aria-live="polite"
+  aria-atomic="true"
+>
+  <div
+  role="status"
+  className={`mx-auto max-w-sm sm:max-w-xs rounded-lg text-white text-center transition-all duration-300 ease-out pointer-events-auto transform
+    ${sent ? "opacity-100 translate-y-0 animate-slideDown" : "opacity-0 -translate-y-6"}`}
+>
+
+    <div className="p-3 sm:p-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-xl backdrop-blur-md">
+      <div className="font-semibold text-base sm:text-lg">Message Sent</div>
+      <div className="text-xs sm:text-sm text-white/80 break-words">
+        Thanks — I&apos;ll get back to you shortly.
       </div>
+    </div>
+  </div>
+</div>
     </section>
   );
 }

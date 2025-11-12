@@ -76,6 +76,9 @@ img {
 /* ------------------------------------------------------------
    🌟 Skill Cards: Rotation + Colored Glow on Hover
 ------------------------------------------------------------- */
+/* ------------------------------------------------------------
+   🌟 Skill Cards: Rotation + Colored Glow on Hover
+------------------------------------------------------------- */
 @keyframes rotate-top-normal {
   0% {
     transform: rotate(0);
@@ -86,6 +89,24 @@ img {
     transform-origin: top;
   }
 }
+
+/* ✅ Added correct slideDown animation for toasts */
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slideDown {
+  animation: slideDown 0.4s ease-out forwards;
+}
+
+
 
 .card-animate {
   position: relative;
@@ -286,3 +307,4 @@ img {
     display: none;
   }
 }
+
