@@ -1,5 +1,6 @@
 // ContactSection.jsx
 import React, { useRef, useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import emailjs from "@emailjs/browser";
 import { FaLinkedin, FaGithub, FaEnvelope, FaPaperPlane } from "react-icons/fa";
 
@@ -9,7 +10,6 @@ export default function ContactSection() {
   const [sent, setSent] = useState(false);
   const [error, setError] = useState(null);
 
-  // per-field errors
   const [fieldErrors, setFieldErrors] = useState({
     name: "",
     email: "",
@@ -20,6 +20,11 @@ export default function ContactSection() {
   const SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
   const TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
   const PUBLIC_KEY = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
+
+  // public links
+  const LINKEDIN_URL = "https://www.linkedin.com/in/ansh-mishra-189506257/";
+  const GITHUB_URL = "https://github.com/ANSHM30";
+  const EMAIL_ADDRESS = "anshkm30@gmail.com";
 
   useEffect(() => {
     if (sent) {
@@ -35,14 +40,12 @@ export default function ContactSection() {
     }
   }, [error]);
 
-  // Simple and practical email regex that rejects missing @ and domain parts
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   function validateAll({ name, email, message }) {
     const errors = { name: "", email: "", message: "" };
     let valid = true;
 
-    // Name: required, min 2 chars
     if (!name) {
       errors.name = "Name is required.";
       valid = false;
@@ -51,7 +54,6 @@ export default function ContactSection() {
       valid = false;
     }
 
-    // Email: required + regex
     if (!email) {
       errors.email = "Email is required.";
       valid = false;
@@ -60,7 +62,6 @@ export default function ContactSection() {
       valid = false;
     }
 
-    // Message: required, min 10 chars
     if (!message) {
       errors.message = "Message is required.";
       valid = false;
@@ -77,13 +78,11 @@ export default function ContactSection() {
     e.preventDefault();
     if (!formRef.current) return;
 
-    // Read form values (names must match the template variables)
     const fd = new FormData(formRef.current);
     const name = (fd.get("name") || "").toString().trim();
     const email = (fd.get("email") || "").toString().trim();
     const message = (fd.get("message") || "").toString().trim();
 
-    // Validate on client
     const isValid = validateAll({ name, email, message });
     if (!isValid) {
       setError("Please fix the highlighted fields.");
@@ -104,7 +103,6 @@ export default function ContactSection() {
       setSending(false);
       setSent(true);
       formRef.current.reset();
-      // clear field errors after successful send
       setFieldErrors({ name: "", email: "", message: "" });
     } catch (err) {
       console.error("EmailJS error:", err);
@@ -113,33 +111,128 @@ export default function ContactSection() {
     }
   }
 
-  // Clear a single field error when user types
-  function handleFieldChange(field, value) {
-    setFieldErrors((prev) => {
+  function handleFieldChange(field) {
+    setFieldErrors(prev => {
       const next = { ...prev };
-      if (next[field]) {
-        next[field] = "";
-      }
+      if (next[field]) next[field] = "";
       return next;
     });
-
-    // Clear top-level error if any
     if (error) setError(null);
   }
 
-  // === Your public links ===
-  const LINKEDIN_URL = "https://www.linkedin.com/in/ansh-mishra-189506257/";
-  const GITHUB_URL = "https://github.com/ANSHM30";
-  const EMAIL_ADDRESS = "anshkm30@gmail.com";
-  // =========================
+  function dismissToast() {
+    setSent(false);
+  }
+
+  /**
+   * ToastPortal: creates a dedicated node appended to document.body and sets
+   * robust inline styles to prevent clipping on mobile/within transformed parents.
+   */
+  function ToastPortal() {
+    if (typeof document === "undefined") return null;
+
+    // create a stable container node (only once)
+    const [container] = React.useState(() => {
+      const el = document.createElement("div");
+      // apply inline styles that guarantee full-viewport fixed positioning + center
+      Object.assign(el.style, {
+        position: "fixed",
+        top: "0",
+        left: "0",
+        right: "0",
+        bottom: "0",
+        pointerEvents: "none",
+        zIndex: String(9999999), // extremely high
+      });
+      return el;
+    });
+
+    useEffect(() => {
+      document.body.appendChild(container);
+      return () => {
+        if (document.body.contains(container)) document.body.removeChild(container);
+      };
+    }, [container]);
+
+    // Inner toast wrapper centered at top, with safe area spacing.
+    const toastInner = (
+      <div
+        // this inner wrapper is centered horizontally, contains the toast and respects safe area
+        style={{
+          position: "fixed",
+          // respect notch / status bar; fallback to 12px
+          top: "calc(env(safe-area-inset-top, 12px) + 8px)",
+          left: 0,
+          right: 0,
+          display: "flex",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+        aria-live="polite"
+        aria-atomic="true"
+      >
+        <div
+          role="status"
+          // pointerEvents auto on inner so it can be interacted with (dismiss)
+          style={{
+            pointerEvents: "auto",
+            width: "92%",
+            maxWidth: "380px",
+            transition: "transform 300ms ease, opacity 300ms ease",
+            transform: sent ? "translateY(0)" : "translateY(-16px)",
+            opacity: sent ? 1 : 0,
+            borderRadius: "12px",
+            background: "linear-gradient(90deg,#6366f1,#8b5cf6)",
+            boxShadow: "0 12px 30px rgba(12,11,20,0.6)",
+            color: "white",
+            padding: "12px 14px",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            margin: "0 12px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: "8px",
+          }}
+        >
+          <div style={{ textAlign: "left", flex: 1 }}>
+            <div style={{ fontWeight: 600, fontSize: "14px", lineHeight: "1.1" }}>Message Sent</div>
+            <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.9)", marginTop: 4 }}>
+              Thanks — I&apos;ll get back to you shortly.
+            </div>
+          </div>
+
+          <button
+            onClick={dismissToast}
+            aria-label="Dismiss message"
+            style={{
+              marginLeft: 12,
+              width: 32,
+              height: 32,
+              borderRadius: 8,
+              background: "rgba(255,255,255,0.08)",
+              border: "none",
+              color: "white",
+              fontSize: 16,
+              cursor: "pointer",
+            }}
+          >
+            ×
+          </button>
+        </div>
+      </div>
+    );
+
+    return createPortal(toastInner, container);
+  }
 
   return (
     <section
       id="contact"
-      className="relative py-20 px-6 text-white flex flex-col items-center justify-center overflow-hidden
+      className="relative py-20 px-6 text-white flex flex-col items-center justify-center overflow-visible
                  bg-[radial-gradient(ellipse_at_bottom_left,_var(--tw-gradient-stops))] from-[#1a0b2e] via-[#0b1a2f] to-[#020617]"
     >
-      {/* Animated background aurora glow */}
+      {/* Background glow */}
       <div className="absolute inset-0 opacity-40 blur-3xl pointer-events-none">
         <div className="absolute w-[40rem] h-[40rem] bg-gradient-to-r from-indigo-600 via-purple-500 to-pink-600 rounded-full mix-blend-overlay animate-pulse top-1/4 left-1/3" />
       </div>
@@ -156,12 +249,9 @@ export default function ContactSection() {
       {/* Contact Form Card */}
       <div className="relative z-10 w-full max-w-lg bg-gray-900/80 backdrop-blur-xl border border-gray-700 rounded-2xl shadow-2xl 
                       p-8 md:p-10 hover:shadow-indigo-600/20 transition-all duration-500 overflow-visible group">
-
-        {/* Gradient Border Glow */}
         <div className="absolute -inset-[2px] rounded-2xl bg-gradient-to-br from-indigo-600 via-purple-500 to-pink-600 opacity-30 blur-2xl transition-all duration-700 group-hover:opacity-60 pointer-events-none" />
 
         <form ref={formRef} onSubmit={handleSubmit} className="relative z-10 space-y-6" noValidate>
-          {/* NOTE: `name` attributes must match the variables in your EmailJS template ({{name}}, {{email}}, {{message}}) */}
           <div>
             <input
               name="name"
@@ -172,11 +262,9 @@ export default function ContactSection() {
               required
               aria-label="Your name"
               aria-invalid={!!fieldErrors.name}
-              onChange={(e) => handleFieldChange("name", e.target.value)}
+              onChange={() => handleFieldChange("name")}
             />
-            {fieldErrors.name && (
-              <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.name}</p>
-            )}
+            {fieldErrors.name && <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.name}</p>}
           </div>
 
           <div>
@@ -189,11 +277,9 @@ export default function ContactSection() {
               required
               aria-label="Your email"
               aria-invalid={!!fieldErrors.email}
-              onChange={(e) => handleFieldChange("email", e.target.value)}
+              onChange={() => handleFieldChange("email")}
             />
-            {fieldErrors.email && (
-              <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.email}</p>
-            )}
+            {fieldErrors.email && <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.email}</p>}
           </div>
 
           <div>
@@ -206,11 +292,9 @@ export default function ContactSection() {
               required
               aria-label="Your message"
               aria-invalid={!!fieldErrors.message}
-              onChange={(e) => handleFieldChange("message", e.target.value)}
+              onChange={() => handleFieldChange("message")}
             />
-            {fieldErrors.message && (
-              <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.message}</p>
-            )}
+            {fieldErrors.message && <p className="mt-1 text-sm text-red-300" role="alert">{fieldErrors.message}</p>}
           </div>
 
           <div className="flex items-center gap-4">
@@ -223,67 +307,28 @@ export default function ContactSection() {
               {sending ? "Sending..." : "Send Message"}
             </button>
 
-            {error && (
-              <div className="text-sm text-red-300">{error}</div>
-            )}
+            {error && <div className="text-sm text-red-300">{error}</div>}
           </div>
         </form>
       </div>
 
       {/* Social Links */}
       <div className="relative z-10 mt-10 flex justify-center space-x-8">
-        <a
-          href={LINKEDIN_URL}
-          className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30"
-          title="LinkedIn"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open LinkedIn profile (opens in new tab)"
-        >
+        <a href={LINKEDIN_URL} target="_blank" rel="noopener noreferrer" aria-label="Open LinkedIn profile" className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-indigo-500 hover:shadow-lg hover:shadow-indigo-500/30">
           <FaLinkedin className="w-7 h-7 text-indigo-400 hover:text-indigo-300 transition" />
         </a>
 
-        <a
-          href={GITHUB_URL}
-          className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/30"
-          title="GitHub"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open GitHub profile (opens in new tab)"
-        >
+        <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" aria-label="Open GitHub profile" className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-purple-500 hover:shadow-lg hover:shadow-purple-500/30">
           <FaGithub className="w-7 h-7 text-gray-300 hover:text-white transition" />
         </a>
 
-        <a
-          href={`mailto:${EMAIL_ADDRESS}`}
-          className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-pink-500 hover:shadow-lg hover:shadow-pink-500/30"
-          title="Send email"
-          aria-label="Send email"
-        >
+        <a href={`mailto:${EMAIL_ADDRESS}`} aria-label="Send email" className="p-3 rounded-full bg-gray-800/80 border border-gray-700 backdrop-blur-md hover:scale-110 transition-all hover:border-pink-500 hover:shadow-lg hover:shadow-pink-500/30">
           <FaEnvelope className="w-7 h-7 text-pink-400 hover:text-pink-300 transition" />
         </a>
       </div>
 
-      {/* ✅ Success toast (responsive, top center) */}
-<div
-  className="fixed top-4 sm:top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] sm:w-auto px-2 sm:px-0 pointer-events-none"
-  aria-live="polite"
-  aria-atomic="true"
->
-  <div
-  role="status"
-  className={`mx-auto max-w-sm sm:max-w-xs rounded-lg text-white text-center transition-all duration-300 ease-out pointer-events-auto transform
-    ${sent ? "opacity-100 translate-y-0 animate-slideDown" : "opacity-0 -translate-y-6"}`}
->
-
-    <div className="p-3 sm:p-4 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg shadow-xl backdrop-blur-md">
-      <div className="font-semibold text-base sm:text-lg">Message Sent</div>
-      <div className="text-xs sm:text-sm text-white/80 break-words">
-        Thanks — I&apos;ll get back to you shortly.
-      </div>
-    </div>
-  </div>
-</div>
+      {/* toast portal */}
+      <ToastPortal />
     </section>
   );
 }
